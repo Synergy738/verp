@@ -8,6 +8,7 @@ import { roleDefinitions, userRoles } from "./roles"
 import { academicYears, semesters } from "./academic"
 import { courseOfferings, batches, batchAssignments, studentEnrollments } from "./offerings"
 import { marks, marksLocks } from "./marks"
+import { auditLogs } from "./audit"
 
 // Auth relations
 export const userRelations = relations(user, ({ many }) => ({
@@ -100,6 +101,11 @@ export const studentEnrollmentsRelations = relations(studentEnrollments, ({ one 
 export const marksRelations = relations(marks, ({ one }) => ({
   courseOffering: one(courseOfferings, { fields: [marks.courseOfferingId], references: [courseOfferings.id] }),
   student: one(students, { fields: [marks.studentId], references: [students.id] }),
+}))
+
+// Audit relations
+export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
+  actor: one(user, { fields: [auditLogs.actorId], references: [user.id] }),
 }))
 
 export const marksLocksRelations = relations(marksLocks, ({ one }) => ({

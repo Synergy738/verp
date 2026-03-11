@@ -1,6 +1,8 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { getSessionUser } from "@/lib/session"
-import { createBatch, assignStudentToBatch } from "@/db/queries"
+import { createBatch, assignStudentToBatch, createAuditLog } from "@/db/queries"
+import { apiSuccess, apiError } from "@/lib/api-response"
+import { getErrorMessage } from "@/lib/error-utils"
 import { z } from "zod"
 
 const createSchema = z.object({
@@ -16,14 +18,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   try {
     const user = await getSessionUser()
     if (!user || user.role === "student") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      return apiError("Forbidden", 403)
     }
 
     const { id } = await params
     const body = await req.json()
     const parsed = createSchema.safeParse(body)
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
+      return apiError("Invalid data", 400)
     }
 
     const result = await createBatch({
@@ -31,13 +33,21 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       name: parsed.data.name,
     })
 
-    return NextResponse.json(result)
+    await createAuditLog({
+      action: "batch.create",
+      actorId: user.id,
+      targetType: "courseOffering",
+      targetId: id,
+      details: { batchName: parsed.data.name },
+    })
+
+    return apiSuccess(result)
   } catch (err: any) {
     if (err?.code === "23505") {
-      return NextResponse.json({ error: "Batch name already exists" }, { status: 409 })
+      return apiError("Batch name already exists", 409)
     }
     console.error("Failed to create batch:", err)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return apiError(getErrorMessage(err, "Internal server error"), 500)
   }
 }
 
@@ -45,13 +55,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   try {
     const user = await getSessionUser()
     if (!user || user.role === "student") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      return apiError("Forbidden", 403)
     }
 
+    const { id } = await params
     const body = await req.json()
     const parsed = assignSchema.safeParse(body)
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
+      return apiError("Invalid data", 400)
     }
 
     const result = await assignStudentToBatch({
@@ -59,9 +70,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       studentId: parsed.data.studentId,
     })
 
-    return NextResponse.json(result)
+    await createAuditLog({
+      action: "batch.assign_student",
+      actorId: user.id,
+      targetType: "batch",
+      targetId: parsed.data.batchId,
+      details: { studentId: parsed.data.studentId, courseOfferingId: id },
+    })
+
+    return apiSuccess(result)
   } catch (err) {
     console.error("Failed to assign student to batch:", err)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return apiError(getErrorMessage(err, "Internal server error"), 500)
   }
 }

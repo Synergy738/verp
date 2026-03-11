@@ -55,6 +55,8 @@ export default async function MarksEntryPage({ params }: { params: Promise<{ off
       <div className="@container/main flex flex-1 flex-col gap-4 p-4 lg:p-6">
         <MarksEntryClient
           offeringId={offeringId}
+          courseCode={offering.course.courseCode}
+          courseName={offering.course.courseName}
           courseType={offering.course.courseType}
           maxIsa={offering.course.maxIsa}
           maxMse={offering.course.maxMse}

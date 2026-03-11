@@ -26,6 +26,7 @@ import {
   FileTextIcon,
   ClipboardListIcon,
   LayersIcon,
+  ScrollTextIcon,
 } from "lucide-react"
 import { useSession } from "@/lib/auth-client"
 import { useUserRole } from "@/hooks/use-user-role"
@@ -95,6 +96,14 @@ const adminNav = [
     icon: <ClipboardCheckIcon />,
     items: [
       { title: "Records", url: "/dashboard/attendance" },
+    ],
+  },
+  {
+    title: "Activity Log",
+    url: "/dashboard/audit",
+    icon: <ScrollTextIcon />,
+    items: [
+      { title: "All Logs", url: "/dashboard/audit" },
     ],
   },
   {

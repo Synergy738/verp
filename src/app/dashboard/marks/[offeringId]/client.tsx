@@ -14,7 +14,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { computeMarks, type MarksInput, type CourseInfo } from "@/lib/sgpi"
-import { LockIcon, UnlockIcon, DownloadIcon } from "lucide-react"
+import { LockIcon, UnlockIcon, DownloadIcon, FileSpreadsheetIcon } from "lucide-react"
+import { exportMarksXlsx } from "@/lib/xlsx-export"
 
 type StudentMarks = {
   studentId: string
@@ -35,6 +36,8 @@ type BatchInfo = {
 
 type Props = {
   offeringId: string
+  courseCode: string
+  courseName: string
   courseType: string
   maxIsa: number
   maxMse: number
@@ -49,6 +52,8 @@ type Props = {
 
 export function MarksEntryClient({
   offeringId,
+  courseCode,
+  courseName,
   courseType,
   maxIsa,
   maxMse,
@@ -175,6 +180,36 @@ export function MarksEntryClient({
     URL.revokeObjectURL(url)
   }
 
+  async function handleExportXlsx() {
+    const base64 = await exportMarksXlsx({
+      courseCode,
+      courseName,
+      courseType,
+      maxIsa,
+      maxMse,
+      maxEse,
+      maxTotal,
+      division,
+      facultyName,
+      rows: filteredRows.map((r) => ({
+        rollNumber: r.rollNumber,
+        name: `${r.firstName} ${r.lastName}`,
+        isa: r.isa,
+        mse1: r.mse1,
+        mse2: r.mse2,
+        ese: r.ese,
+      })),
+    })
+    const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
+    const blob = new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `marks-${courseCode}.xlsx`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -194,6 +229,9 @@ export function MarksEntryClient({
           {saved && <span className="text-sm text-muted-foreground">Saved</span>}
           <Button variant="outline" size="sm" onClick={handleExportCsv}>
             <DownloadIcon className="size-3.5 mr-1.5" /> CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleExportXlsx}>
+            <FileSpreadsheetIcon className="size-3.5 mr-1.5" /> Excel
           </Button>
           <Button
             variant="outline"

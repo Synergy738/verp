@@ -1,6 +1,8 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { getSessionUser } from "@/lib/session"
-import { enrollStudent, unenrollStudent } from "@/db/queries"
+import { enrollStudent, unenrollStudent, createAuditLog } from "@/db/queries"
+import { apiSuccess, apiError } from "@/lib/api-response"
+import { getErrorMessage } from "@/lib/error-utils"
 import { z } from "zod"
 
 const schema = z.object({
@@ -11,14 +13,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   try {
     const user = await getSessionUser()
     if (!user || user.role === "student") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      return apiError("Forbidden", 403)
     }
 
     const { id } = await params
     const body = await req.json()
     const parsed = schema.safeParse(body)
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
+      return apiError("Invalid data", 400)
     }
 
     const result = await enrollStudent({
@@ -26,10 +28,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       studentId: parsed.data.studentId,
     })
 
-    return NextResponse.json(result)
+    await createAuditLog({
+      action: "enrollment.add",
+      actorId: user.id,
+      targetType: "courseOffering",
+      targetId: id,
+      details: { studentId: parsed.data.studentId },
+    })
+
+    return apiSuccess(result)
   } catch (err) {
     console.error("Failed to enroll student:", err)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return apiError(getErrorMessage(err, "Internal server error"), 500)
   }
 }
 
@@ -37,24 +47,32 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   try {
     const user = await getSessionUser()
     if (!user || user.role === "student") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      return apiError("Forbidden", 403)
     }
 
     const { id } = await params
     const body = await req.json()
     const parsed = schema.safeParse(body)
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
+      return apiError("Invalid data", 400)
     }
 
     const result = await unenrollStudent(id, parsed.data.studentId)
     if (!result) {
-      return NextResponse.json({ error: "Enrollment not found" }, { status: 404 })
+      return apiError("Enrollment not found", 404)
     }
 
-    return NextResponse.json({ success: true })
+    await createAuditLog({
+      action: "enrollment.remove",
+      actorId: user.id,
+      targetType: "courseOffering",
+      targetId: id,
+      details: { studentId: parsed.data.studentId },
+    })
+
+    return apiSuccess({ success: true })
   } catch (err) {
     console.error("Failed to unenroll student:", err)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return apiError(getErrorMessage(err, "Internal server error"), 500)
   }
 }

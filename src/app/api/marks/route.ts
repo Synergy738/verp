@@ -1,6 +1,8 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { getSessionUser } from "@/lib/session"
-import { bulkUpsertMarks, getMarksLock } from "@/db/queries"
+import { bulkUpsertMarks, getMarksLock, createAuditLog } from "@/db/queries"
+import { apiSuccess, apiError } from "@/lib/api-response"
+import { getErrorMessage } from "@/lib/error-utils"
 import { z } from "zod"
 
 export const dynamic = "force-dynamic"
@@ -20,21 +22,20 @@ export async function POST(req: NextRequest) {
   try {
     const user = await getSessionUser()
     if (!user || user.role === "student") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      return apiError("Forbidden", 403)
     }
 
     const body = await req.json()
     const parsed = marksEntrySchema.safeParse(body)
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
+      return apiError("Invalid marks data", 400)
     }
 
     const { courseOfferingId, marks } = parsed.data
 
-    // Check if marks are locked
     const allLock = await getMarksLock(courseOfferingId, "all")
     if (allLock?.isLocked && user.role !== "admin") {
-      return NextResponse.json({ error: "Marks are locked" }, { status: 403 })
+      return apiError("Marks are locked", 403)
     }
 
     const entries = marks.map((m) => ({
@@ -47,9 +48,18 @@ export async function POST(req: NextRequest) {
     }))
 
     const result = await bulkUpsertMarks(entries)
-    return NextResponse.json({ saved: result.length })
+
+    await createAuditLog({
+      action: "marks.save",
+      actorId: user.id,
+      targetType: "courseOffering",
+      targetId: courseOfferingId,
+      details: { count: result.length },
+    })
+
+    return apiSuccess({ saved: result.length })
   } catch (err) {
     console.error("Failed to save marks:", err)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return apiError(getErrorMessage(err, "Internal server error"), 500)
   }
 }

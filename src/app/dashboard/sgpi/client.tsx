@@ -20,7 +20,8 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { computeMarks, computeSgpi, type MarksInput, type CourseInfo } from "@/lib/sgpi"
-import { DownloadIcon } from "lucide-react"
+import { DownloadIcon, FileSpreadsheetIcon } from "lucide-react"
+import { exportSgpiXlsx } from "@/lib/xlsx-export"
 
 type StudentMarksEntry = {
   courseCode: string
@@ -92,6 +93,26 @@ export function SgpiClient({
     URL.revokeObjectURL(url)
   }
 
+  async function handleExportXlsx() {
+    const base64 = await exportSgpiXlsx({
+      semesterLabel,
+      students: filtered.map((s) => ({
+        rollNumber: s.rollNumber,
+        name: `${s.firstName} ${s.lastName}`,
+        division: s.division,
+        courses: s.marks,
+      })),
+    })
+    const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
+    const blob = new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = "sgpi-report.xlsx"
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -100,6 +121,9 @@ export function SgpiClient({
           <p className="text-sm text-muted-foreground">{filtered.length} student(s)</p>
           <Button variant="outline" size="sm" onClick={handleExportCsv}>
             <DownloadIcon className="size-3.5 mr-1.5" /> CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleExportXlsx}>
+            <FileSpreadsheetIcon className="size-3.5 mr-1.5" /> Excel
           </Button>
         </div>
       </div>
