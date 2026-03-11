@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { computeMarks, computeSgpi, type MarksInput, type CourseInfo } from "@/lib/sgpi"
-import { DownloadIcon, FileSpreadsheetIcon } from "lucide-react"
+import { DownloadIcon, FileSpreadsheetIcon, SearchIcon } from "lucide-react"
 import { exportSgpiXlsx } from "@/lib/xlsx-export"
 
 type StudentMarksEntry = {
@@ -115,10 +115,13 @@ export function SgpiClient({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">{semesterLabel}</p>
+      {/* Toolbar */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-3">
+          <p className="text-sm font-medium">{semesterLabel}</p>
+          <Badge variant="secondary" className="tabular-nums text-xs">{filtered.length} students</Badge>
+        </div>
         <div className="flex items-center gap-2">
-          <p className="text-sm text-muted-foreground">{filtered.length} student(s)</p>
           <Button variant="outline" size="sm" onClick={handleExportCsv}>
             <DownloadIcon className="size-3.5 mr-1.5" /> CSV
           </Button>
@@ -127,13 +130,20 @@ export function SgpiClient({
           </Button>
         </div>
       </div>
-      <Input
-        placeholder="Search by name or roll number..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="max-w-sm"
-      />
-      <div className="rounded-md border">
+
+      {/* Search */}
+      <div className="relative max-w-sm">
+        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        <Input
+          placeholder="Search by name or roll number..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
+      {/* Table */}
+      <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -151,7 +161,7 @@ export function SgpiClient({
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="h-24 text-center">No results.</TableCell>
+                <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">No results.</TableCell>
               </TableRow>
             ) : (
               filtered.map((student, idx) => {
@@ -170,22 +180,22 @@ export function SgpiClient({
 
                 return (
                   <TableRow key={student.studentId}>
-                    <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
+                    <TableCell className="text-muted-foreground tabular-nums">{idx + 1}</TableCell>
                     <TableCell className="font-mono text-xs">{student.rollNumber}</TableCell>
-                    <TableCell>{student.firstName} {student.lastName}</TableCell>
+                    <TableCell className="font-medium text-sm">{student.firstName} {student.lastName}</TableCell>
                     <TableCell className="text-center">
-                      {student.division ? <Badge variant="outline">{student.division}</Badge> : "-"}
+                      {student.division ? <Badge variant="secondary" className="text-xs">{student.division}</Badge> : <span className="text-muted-foreground">-</span>}
                     </TableCell>
                     <TableCell className="text-center tabular-nums">{sgpi.totalCredits}</TableCell>
                     <TableCell className="text-center tabular-nums">{sgpi.totalCreditPoints}</TableCell>
-                    <TableCell className="text-center font-medium tabular-nums">
+                    <TableCell className="text-center font-semibold tabular-nums">
                       {sgpi.sgpi ?? "-"}
                     </TableCell>
                     <TableCell className="text-center">
                       {sgpi.hasFail
-                        ? <Badge variant="outline" className="text-destructive">Fail</Badge>
+                        ? <Badge variant="outline" className="text-destructive border-red-200 bg-red-50 text-xs">Fail</Badge>
                         : sgpi.sgpi != null
-                          ? <Badge variant="outline" className="text-green-600">Pass</Badge>
+                          ? <Badge variant="outline" className="text-emerald-600 border-emerald-200 bg-emerald-50 text-xs">Pass</Badge>
                           : <span className="text-muted-foreground">-</span>
                       }
                     </TableCell>
@@ -206,16 +216,17 @@ export function SgpiClient({
 function StudentDetailDialog({ student }: { student: StudentSgpiData }) {
   return (
     <Dialog>
-      <DialogTrigger render={<button className="text-sm text-blue underline-offset-2 hover:underline" />}>
+      <DialogTrigger render={<button className="text-xs font-medium text-blue underline-offset-2 hover:underline" />}>
         View
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>
-            {student.firstName} {student.lastName} ({student.rollNumber})
+          <DialogTitle className="flex items-center gap-2">
+            {student.firstName} {student.lastName}
+            <Badge variant="outline" className="font-mono text-xs font-normal">{student.rollNumber}</Badge>
           </DialogTitle>
         </DialogHeader>
-        <div className="rounded-md border">
+        <div className="rounded-lg border bg-card">
           <Table>
             <TableHeader>
               <TableRow>
@@ -253,11 +264,11 @@ function StudentDetailDialog({ student }: { student: StudentSgpiData }) {
                     <TableCell className="text-center tabular-nums">{m.isa ?? "-"}</TableCell>
                     <TableCell className="text-center tabular-nums">{computed.finalMse ?? "-"}</TableCell>
                     <TableCell className="text-center tabular-nums">{m.ese ?? "-"}</TableCell>
-                    <TableCell className="text-center tabular-nums font-medium">{computed.percentage != null ? computed.total : "-"}</TableCell>
+                    <TableCell className="text-center tabular-nums font-semibold">{computed.percentage != null ? computed.total : "-"}</TableCell>
                     <TableCell className="text-center tabular-nums">{computed.percentage ?? "-"}</TableCell>
                     <TableCell className="text-center tabular-nums">
                       {computed.gradePoint === "Fail"
-                        ? <span className="text-destructive">Fail</span>
+                        ? <span className="font-medium text-destructive">Fail</span>
                         : computed.gradePoint ?? "-"
                       }
                     </TableCell>
@@ -293,18 +304,18 @@ function SgpiSummary({ marks }: { marks: StudentMarksEntry[] }) {
   const sgpi = computeSgpi(entries)
 
   return (
-    <div className="flex items-center justify-end gap-6 pt-2 text-sm">
+    <div className="flex items-center justify-end gap-6 rounded-lg border bg-muted/50 p-3 text-sm">
       <div>
-        <span className="text-muted-foreground">Total Credits: </span>
-        <span className="font-medium tabular-nums">{sgpi.totalCredits}</span>
+        <span className="text-muted-foreground">Credits: </span>
+        <span className="font-semibold tabular-nums">{sgpi.totalCredits}</span>
       </div>
       <div>
-        <span className="text-muted-foreground">Total CGP: </span>
-        <span className="font-medium tabular-nums">{sgpi.totalCreditPoints}</span>
+        <span className="text-muted-foreground">CGP: </span>
+        <span className="font-semibold tabular-nums">{sgpi.totalCreditPoints}</span>
       </div>
-      <div>
-        <span className="text-muted-foreground">SGPI: </span>
-        <span className="font-bold tabular-nums text-lg">{sgpi.sgpi ?? "-"}</span>
+      <div className="flex items-center gap-1.5">
+        <span className="text-muted-foreground">SGPI:</span>
+        <span className="text-xl font-bold tabular-nums text-blue">{sgpi.sgpi ?? "-"}</span>
       </div>
     </div>
   )

@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { SearchIcon } from "lucide-react"
 
 type AuditLogEntry = {
   id: string
@@ -22,15 +23,15 @@ type AuditLogEntry = {
   createdAt: string
 }
 
-const ACTION_COLORS: Record<string, string> = {
-  "marks.save": "text-blue",
-  "marks.lock": "text-orange-500",
-  "marks.unlock": "text-green-600",
-  "enrollment.add": "text-green-600",
-  "enrollment.remove": "text-destructive",
-  "offering.assign_faculty": "text-purple-500",
-  "batch.create": "text-blue",
-  "batch.assign_student": "text-blue",
+const ACTION_STYLES: Record<string, string> = {
+  "marks.save": "text-blue border-blue/20 bg-blue/8",
+  "marks.lock": "text-amber-600 border-amber-200 bg-amber-50",
+  "marks.unlock": "text-emerald-600 border-emerald-200 bg-emerald-50",
+  "enrollment.add": "text-emerald-600 border-emerald-200 bg-emerald-50",
+  "enrollment.remove": "text-destructive border-red-200 bg-red-50",
+  "offering.assign_faculty": "text-violet-600 border-violet-200 bg-violet-50",
+  "batch.create": "text-blue border-blue/20 bg-blue/8",
+  "batch.assign_student": "text-blue border-blue/20 bg-blue/8",
 }
 
 export function AuditLogClient({
@@ -59,18 +60,22 @@ export function AuditLogClient({
 
   return (
     <div className="space-y-4">
+      {/* Filters */}
       <div className="flex items-center gap-3 flex-wrap">
-        <Input
-          placeholder="Search logs..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="max-w-xs"
-        />
+        <div className="relative max-w-xs flex-1">
+          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input
+            placeholder="Search logs..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
         <div className="flex gap-1 flex-wrap">
           <button
             onClick={() => setFilterAction("all")}
-            className={`text-xs px-2.5 py-1 rounded-md border transition-colors ${
-              filterAction === "all" ? "bg-blue text-blue-foreground border-blue" : "hover:bg-muted"
+            className={`text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
+              filterAction === "all" ? "bg-blue text-blue-foreground shadow-sm" : "bg-muted hover:bg-muted/80 text-muted-foreground"
             }`}
           >
             All
@@ -79,10 +84,10 @@ export function AuditLogClient({
             <button
               key={action}
               onClick={() => setFilterAction(action)}
-              className={`text-xs px-2.5 py-1 rounded-md border transition-colors ${
+              className={`text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
                 filterAction === action
-                  ? "bg-blue text-blue-foreground border-blue"
-                  : "hover:bg-muted"
+                  ? "bg-blue text-blue-foreground shadow-sm"
+                  : "bg-muted hover:bg-muted/80 text-muted-foreground"
               }`}
             >
               {action}
@@ -91,14 +96,15 @@ export function AuditLogClient({
         </div>
       </div>
 
-      <p className="text-sm text-muted-foreground">{filtered.length} entries</p>
+      <p className="text-xs font-medium text-muted-foreground tabular-nums">{filtered.length} entries</p>
 
-      <div className="rounded-md border">
+      {/* Table */}
+      <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-[160px]">Time</TableHead>
-              <TableHead className="w-[160px]">Action</TableHead>
+              <TableHead className="w-[180px]">Action</TableHead>
               <TableHead>Actor</TableHead>
               <TableHead>Target</TableHead>
               <TableHead>Details</TableHead>
@@ -107,7 +113,7 @@ export function AuditLogClient({
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
+                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
                   No audit logs found.
                 </TableCell>
               </TableRow>
@@ -120,17 +126,17 @@ export function AuditLogClient({
                   <TableCell>
                     <Badge
                       variant="outline"
-                      className={`text-xs ${ACTION_COLORS[log.action] ?? ""}`}
+                      className={`text-[11px] font-medium ${ACTION_STYLES[log.action] ?? ""}`}
                     >
                       {log.action}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-sm">{log.actorName}</TableCell>
+                  <TableCell className="text-sm font-medium">{log.actorName}</TableCell>
                   <TableCell className="text-xs">
                     <span className="text-muted-foreground">{log.targetType}</span>
                     {log.targetId && (
-                      <span className="ml-1 font-mono text-[10px]">
-                        {log.targetId.slice(0, 8)}...
+                      <span className="ml-1.5 rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">
+                        {log.targetId.slice(0, 8)}
                       </span>
                     )}
                   </TableCell>

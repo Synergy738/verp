@@ -1,7 +1,7 @@
 import { pgTable, text, timestamp, boolean, uuid, integer, index, unique } from "drizzle-orm/pg-core"
 import { courseOfferings } from "./offerings"
 import { students } from "./students"
-import { faculty } from "./faculty"
+import { user } from "./auth"
 
 export const marks = pgTable("marks", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -30,11 +30,11 @@ export const marksLocks = pgTable("marks_locks", {
     .references(() => courseOfferings.id, { onDelete: "cascade" }),
   component: text("component").notNull(),
   isLocked: boolean("is_locked").notNull().default(false),
-  lockedBy: uuid("locked_by")
-    .references(() => faculty.id, { onDelete: "set null" }),
+  lockedBy: text("locked_by")
+    .references(() => user.id, { onDelete: "set null" }),
   lockedAt: timestamp("locked_at", { withTimezone: true }),
-  unlockedBy: uuid("unlocked_by")
-    .references(() => faculty.id, { onDelete: "set null" }),
+  unlockedBy: text("unlocked_by")
+    .references(() => user.id, { onDelete: "set null" }),
   unlockedAt: timestamp("unlocked_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

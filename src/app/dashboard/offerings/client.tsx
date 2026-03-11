@@ -28,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
+import { SearchIcon } from "lucide-react"
 
 type OfferingItem = {
   id: string
@@ -77,16 +78,19 @@ export function OfferingsClient({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">{semesterLabel}</p>
-        <p className="text-sm text-muted-foreground">{filtered.length} offering(s)</p>
+        <p className="text-sm font-medium">{semesterLabel}</p>
+        <Badge variant="secondary" className="tabular-nums text-xs">{filtered.length} offerings</Badge>
       </div>
-      <Input
-        placeholder="Search by course name or code..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="max-w-sm"
-      />
-      <div className="rounded-md border">
+      <div className="relative max-w-sm">
+        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        <Input
+          placeholder="Search by course name or code..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+      <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -103,13 +107,13 @@ export function OfferingsClient({
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="h-24 text-center">No results.</TableCell>
+                <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">No results.</TableCell>
               </TableRow>
             ) : (
               filtered.map((o) => (
                 <TableRow key={o.id}>
                   <TableCell className="font-mono text-xs">{o.course.courseCode}</TableCell>
-                  <TableCell>{o.course.courseName}</TableCell>
+                  <TableCell className="font-medium text-sm">{o.course.courseName}</TableCell>
                   <TableCell className="text-center">
                     <Badge variant="outline" className="capitalize">{o.course.courseType}</Badge>
                   </TableCell>

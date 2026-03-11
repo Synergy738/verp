@@ -19,7 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { PlusIcon, TrashIcon } from "lucide-react"
+import { PlusIcon, TrashIcon, SearchIcon } from "lucide-react"
 
 type StudentItem = {
   id: string
@@ -126,7 +126,7 @@ function EnrollmentSection({
           {enrolled.length === 0 ? (
             <p className="text-sm text-muted-foreground">No students enrolled.</p>
           ) : (
-            <div className="rounded-md border max-h-[400px] overflow-y-auto">
+            <div className="rounded-lg border max-h-[400px] overflow-y-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -162,13 +162,17 @@ function EnrollmentSection({
           <CardTitle className="text-sm font-medium">Add Students</CardTitle>
         </CardHeader>
         <CardContent className="pt-0 space-y-3">
-          <Input
-            placeholder="Search by roll number or name..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+          <div className="relative">
+            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by roll number or name..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
           {search.length > 0 && (
-            <div className="rounded-md border max-h-[340px] overflow-y-auto">
+            <div className="rounded-lg border max-h-[340px] overflow-y-auto">
               <Table>
                 <TableBody>
                   {filteredAvailable.slice(0, 20).map((s) => (
@@ -275,7 +279,7 @@ function BatchSection({
         ) : (
           <div className="grid gap-4 @xl/main:grid-cols-2">
             {batches.map((batch) => (
-              <div key={batch.id} className="rounded-md border p-3 space-y-2">
+              <div key={batch.id} className="rounded-lg border p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">{batch.name}</span>
                   <span className="text-xs text-muted-foreground">{batch.students.length} student(s)</span>
@@ -298,7 +302,7 @@ function BatchSection({
             <p className="text-xs font-medium text-muted-foreground">
               Unassigned ({unassigned.length}) - click a batch to assign:
             </p>
-            <div className="rounded-md border max-h-[200px] overflow-y-auto">
+            <div className="rounded-lg border max-h-[200px] overflow-y-auto">
               <Table>
                 <TableBody>
                   {unassigned.map((s) => (

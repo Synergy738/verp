@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { SearchIcon } from "lucide-react"
 
 interface DataTableViewProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -54,14 +55,17 @@ export function DataTableView<TData, TValue>({
   return (
     <div className="space-y-4">
       {searchKey && (
-        <Input
-          placeholder={searchPlaceholder}
-          value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
-          onChange={(e) => table.getColumn(searchKey)?.setFilterValue(e.target.value)}
-          className="max-w-sm"
-        />
+        <div className="relative max-w-sm">
+          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input
+            placeholder={searchPlaceholder}
+            value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
+            onChange={(e) => table.getColumn(searchKey)?.setFilterValue(e.target.value)}
+            className="pl-9"
+          />
+        </div>
       )}
-      <div className="rounded-md border">
+      <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -89,7 +93,7 @@ export function DataTableView<TData, TValue>({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
                   No results.
                 </TableCell>
               </TableRow>
@@ -98,7 +102,7 @@ export function DataTableView<TData, TValue>({
         </Table>
       </div>
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xs font-medium text-muted-foreground tabular-nums">
           {table.getFilteredRowModel().rows.length} record(s)
         </p>
         <div className="flex gap-2">
