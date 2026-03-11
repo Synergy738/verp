@@ -11,6 +11,7 @@ export const students = pgTable("students", {
   rollNumber: text("roll_number").notNull().unique(),
   email: text("email").notNull().unique(),
   department: text("department").notNull(),
+  division: text("division"),
   year: text("year").notNull(),
   semester: text("semester"),
   phoneNo: text("phone_no"),

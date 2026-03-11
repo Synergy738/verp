@@ -5,23 +5,21 @@ import { courses } from "@/db/schema"
 export async function getCourseById(id: string) {
   return db.query.courses.findFirst({
     where: and(eq(courses.id, id), eq(courses.isActive, true)),
-    with: { department: true, faculty: true },
+    with: { department: true },
   })
 }
 
 export async function getAllCourses(filters?: {
   departmentId?: number
-  year?: string
-  semester?: string
+  courseType?: string
 }) {
   return db.query.courses.findMany({
     where: and(
       eq(courses.isActive, true),
       filters?.departmentId ? eq(courses.departmentId, filters.departmentId) : undefined,
-      filters?.year ? eq(courses.year, filters.year) : undefined,
-      filters?.semester ? eq(courses.semester, filters.semester) : undefined,
+      filters?.courseType ? eq(courses.courseType, filters.courseType) : undefined,
     ),
-    with: { department: true, faculty: true },
+    with: { department: true },
     orderBy: (courses, { asc }) => [asc(courses.courseCode)],
   })
 }

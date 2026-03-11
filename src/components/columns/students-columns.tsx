@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { ColumnDef } from "@tanstack/react-table"
 import { Badge } from "@/components/ui/badge"
 
@@ -26,6 +27,14 @@ export const studentsColumns: ColumnDef<StudentRow>[] = [
     id: "name",
     header: "Name",
     accessorFn: (row) => `${row.firstName} ${row.lastName}`,
+    cell: ({ row }) => (
+      <Link
+        href={`/dashboard/students/${row.original.id}`}
+        className="text-blue underline-offset-2 hover:underline"
+      >
+        {row.original.firstName} {row.original.lastName}
+      </Link>
+    ),
   },
   {
     accessorKey: "email",

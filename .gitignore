@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+EXCS-UG-Third-Year-SyllabusR-2023.pdf
+SCGPI_Tool.xlsx
+TE - A.pdf
+TE - B.pdf
+docs/COLLEGE_SYSTEM_CONTEXT.md
+.gitignore
+docs/IMPLEMENTATION_PLAN.md

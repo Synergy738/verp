@@ -22,11 +22,13 @@ import {
   IndianRupeeIcon,
   SettingsIcon,
   LayoutDashboardIcon,
-  BuildingIcon,
   ClockIcon,
   FileTextIcon,
+  ClipboardListIcon,
+  LayersIcon,
 } from "lucide-react"
 import { useSession } from "@/lib/auth-client"
+import { useUserRole } from "@/hooks/use-user-role"
 
 const teams = [
   {
@@ -36,7 +38,7 @@ const teams = [
   },
 ]
 
-const navMain = [
+const adminNav = [
   {
     title: "Dashboard",
     url: "/dashboard",
@@ -70,12 +72,21 @@ const navMain = [
       { title: "All Courses", url: "/dashboard/courses" },
     ],
   },
-  {
-    title: "Departments",
-    url: "/dashboard/departments",
-    icon: <BuildingIcon />,
+{
+    title: "Offerings",
+    url: "/dashboard/offerings",
+    icon: <LayersIcon />,
     items: [
-      { title: "All Departments", url: "/dashboard/departments" },
+      { title: "Current Semester", url: "/dashboard/offerings" },
+    ],
+  },
+  {
+    title: "Marks",
+    url: "/dashboard/marks",
+    icon: <ClipboardListIcon />,
+    items: [
+      { title: "Enter Marks", url: "/dashboard/marks" },
+      { title: "SGPI Calculator", url: "/dashboard/sgpi" },
     ],
   },
   {
@@ -106,6 +117,62 @@ const navMain = [
   },
 ]
 
+const facultyNav = [
+  {
+    title: "Dashboard",
+    url: "/dashboard",
+    icon: <LayoutDashboardIcon />,
+    isActive: true,
+    items: [
+      { title: "Overview", url: "/dashboard" },
+    ],
+  },
+  {
+    title: "My Courses",
+    url: "/dashboard/marks",
+    icon: <ClipboardListIcon />,
+    items: [
+      { title: "Enter Marks", url: "/dashboard/marks" },
+    ],
+  },
+  {
+    title: "Attendance",
+    url: "/dashboard/attendance",
+    icon: <ClipboardCheckIcon />,
+    items: [
+      { title: "Records", url: "/dashboard/attendance" },
+    ],
+  },
+]
+
+const studentNav = [
+  {
+    title: "Dashboard",
+    url: "/dashboard",
+    icon: <LayoutDashboardIcon />,
+    isActive: true,
+    items: [
+      { title: "Overview", url: "/dashboard" },
+    ],
+  },
+  {
+    title: "My Marks",
+    url: "/dashboard/my-marks",
+    icon: <ClipboardListIcon />,
+    items: [
+      { title: "View Marks", url: "/dashboard/my-marks" },
+    ],
+  },
+  {
+    title: "Attendance",
+    url: "/dashboard/attendance",
+    icon: <ClipboardCheckIcon />,
+    items: [
+      { title: "Records", url: "/dashboard/attendance" },
+    ],
+  },
+]
+
 const quickAccess = [
   {
     name: "Fees & Finance",
@@ -121,12 +188,17 @@ const quickAccess = [
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: session } = useSession()
+  const { role } = useUserRole()
 
   const user = {
-    name: session?.user?.name ?? "Admin",
+    name: session?.user?.name ?? "User",
     email: session?.user?.email ?? "",
     avatar: session?.user?.image ?? "",
   }
+
+  let navItems = adminNav
+  if (role === "faculty") navItems = facultyNav
+  else if (role === "student") navItems = studentNav
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -134,7 +206,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <TeamSwitcher teams={teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navMain} />
+        <NavMain items={navItems} />
         <NavProjects projects={quickAccess} />
       </SidebarContent>
       <SidebarFooter>

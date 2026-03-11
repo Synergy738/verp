@@ -7,12 +7,14 @@ export type CourseRow = {
   id: string
   courseName: string
   courseCode: string
-  credits: number | null
-  semester: string | null
-  year: string | null
+  courseType: string
+  credits: number
+  maxIsa: number
+  maxMse: number
+  maxEse: number
+  maxTotal: number
   isActive: boolean
   department: { name: string; code: string } | null
-  faculty: { firstName: string; lastName: string } | null
 }
 
 export const coursesColumns: ColumnDef<CourseRow>[] = [
@@ -25,6 +27,18 @@ export const coursesColumns: ColumnDef<CourseRow>[] = [
     header: "Course Name",
   },
   {
+    accessorKey: "courseType",
+    header: "Type",
+    cell: ({ row }) => {
+      const type = row.getValue("courseType") as string
+      return (
+        <Badge variant="outline" className="capitalize">
+          {type}
+        </Badge>
+      )
+    },
+  },
+  {
     id: "department",
     header: "Department",
     accessorFn: (row) => row.department?.code ?? "-",
@@ -34,24 +48,20 @@ export const coursesColumns: ColumnDef<CourseRow>[] = [
     },
   },
   {
-    id: "faculty",
-    header: "Faculty",
-    accessorFn: (row) => row.faculty ? `${row.faculty.firstName} ${row.faculty.lastName}` : "-",
-  },
-  {
     accessorKey: "credits",
     header: "Credits",
-    cell: ({ row }) => row.getValue("credits") ?? "-",
   },
   {
-    accessorKey: "semester",
-    header: "Semester",
-    cell: ({ row }) => row.getValue("semester") ?? "-",
+    id: "marks",
+    header: "Marks (ISA/MSE/ESE)",
+    cell: ({ row }) => {
+      const { maxIsa, maxMse, maxEse } = row.original
+      return `${maxIsa}/${maxMse}/${maxEse}`
+    },
   },
   {
-    accessorKey: "year",
-    header: "Year",
-    cell: ({ row }) => row.getValue("year") ?? "-",
+    accessorKey: "maxTotal",
+    header: "Total",
   },
   {
     accessorKey: "isActive",

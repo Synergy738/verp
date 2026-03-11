@@ -4,12 +4,13 @@ import { students } from "./schema/students"
 import { faculty } from "./schema/faculty"
 import { departments } from "./schema/departments"
 import { courses } from "./schema/courses"
-import { attendance } from "./schema/attendance"
+import { marks } from "./schema/marks"
 
 export const insertStudentSchema = createInsertSchema(students, {
   email: (schema) => schema.email("Invalid email format"),
   phoneNo: (schema) => schema.regex(/^\d{10}$/, "Phone must be 10 digits").optional(),
   department: () => z.string().min(1, "Department is required"),
+  division: () => z.enum(["A", "B"]).optional(),
   year: () => z.enum(["FE", "SE", "TE", "BE"]),
   gender: () => z.enum(["M", "F", "Other", "Prefer not to say"]).optional(),
 })
@@ -33,10 +34,19 @@ export const updateDepartmentSchema = insertDepartmentSchema.partial()
 export const insertCourseSchema = createInsertSchema(courses, {
   courseName: () => z.string().min(1, "Course name is required"),
   courseCode: () => z.string().min(1, "Course code is required").toUpperCase(),
+  courseType: () => z.enum(["theory", "practical", "project"]),
+  credits: () => z.number().int().min(1).max(6),
+  maxIsa: () => z.number().int().min(0),
+  maxMse: () => z.number().int().min(0),
+  maxEse: () => z.number().int().min(0),
+  maxTotal: () => z.number().int().min(1),
 })
 export const updateCourseSchema = insertCourseSchema.partial()
 
-export const insertAttendanceSchema = createInsertSchema(attendance, {
-  status: () => z.enum(["present", "absent", "late", "excused"]),
+export const insertMarksSchema = createInsertSchema(marks, {
+  isa: () => z.number().int().min(0).optional(),
+  mse1: () => z.number().int().min(0).optional(),
+  mse2: () => z.number().int().min(0).optional(),
+  ese: () => z.number().int().min(0).optional(),
 })
-export const updateAttendanceSchema = insertAttendanceSchema.partial()
+export const updateMarksSchema = insertMarksSchema.partial()

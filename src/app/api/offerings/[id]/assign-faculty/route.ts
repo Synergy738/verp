@@ -1,0 +1,34 @@
+import { NextRequest, NextResponse } from "next/server"
+import { getSessionUser } from "@/lib/session"
+import { updateCourseOffering } from "@/db/queries"
+import { z } from "zod"
+
+const schema = z.object({
+  facultyId: z.string().uuid().nullable(),
+})
+
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const user = await getSessionUser()
+    if (!user || user.role !== "admin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
+    const { id } = await params
+    const body = await req.json()
+    const parsed = schema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
+    }
+
+    const result = await updateCourseOffering(id, { facultyId: parsed.data.facultyId })
+    if (!result) {
+      return NextResponse.json({ error: "Offering not found" }, { status: 404 })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    console.error("Failed to assign faculty:", err)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  }
+}

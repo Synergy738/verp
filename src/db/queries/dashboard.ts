@@ -16,25 +16,3 @@ export async function getDashboardStats() {
     total_departments: number
   }
 }
-
-export async function getAttendanceOverview() {
-  const result = await db.execute(sql`
-    SELECT
-      count(*) FILTER (WHERE status = 'present' OR status = 'late')::int as present_count,
-      count(*) FILTER (WHERE status = 'absent')::int as absent_count,
-      count(*)::int as total_records,
-      CASE WHEN count(*) > 0
-        THEN round((count(*) FILTER (WHERE status = 'present' OR status = 'late')::numeric / count(*)::numeric) * 100, 1)
-        ELSE 0
-      END as attendance_rate
-    FROM attendance
-    WHERE is_active = true
-      AND date >= now() - interval '30 days'
-  `)
-  return result.rows[0] as {
-    present_count: number
-    absent_count: number
-    total_records: number
-    attendance_rate: number
-  }
-}
